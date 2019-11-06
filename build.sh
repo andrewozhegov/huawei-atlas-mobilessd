@@ -9,7 +9,10 @@ then
   rm ${LOCAL_OBJ_PATH}/*.o ${LOCAL_OBJ_PATH}/main
   exit
 fi
-cp graph.config ./out/
+sed 's/graph_id:.*/graph_id: 100/g' ./graph.config > ./out/graph0.config
+sed 's/graph_id:.*/graph_id: 101/g' ./graph.config > ./out/graph1.config
+sed 's/graph_id:.*/graph_id: 102/g' ./graph.config > ./out/graph2.config
+sed 's/graph_id:.*/graph_id: 103/g' ./graph.config > ./out/graph3.config
 cd ${BUILD_DIR}
 if [ -d "host" ];then
   if [ -f "host/Makefile" ];then

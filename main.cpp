@@ -15,8 +15,9 @@
 #include <libgen.h>
 #include <string.h>
 
+static const std::string GRAPH_FILENAME[] = { "./graph0.config", "./graph1.config", "./graph2.config", "./graph3.config"};
+static const uint32_t GRAPH_ID[] = { 100, 101, 102, 103 };
 
-uint32_t graph_id = 0;
 int flag = 1;
 std::mutex mt;
 /**
@@ -45,14 +46,14 @@ HIAI_StatusT DeviceDisconnectCallBack()
 }
 
 // Init and create graph
-HIAI_StatusT HIAI_InitAndStartGraph()
+HIAI_StatusT HIAI_InitAndStartGraph(uint32_t deviceID)
 {
     // Step1: Global System Initialization before using HIAI Engine
-    HIAI_StatusT status = HIAI_Init(0);
+    HIAI_StatusT status = HIAI_Init(deviceID);
 
     // Step2: Create and Start the Graph
     std::list<std::shared_ptr<hiai::Graph>> graphList;
-    status = hiai::Graph::CreateGraph("./graph.config",graphList);
+    status = hiai::Graph::CreateGraph(GRAPH_FILENAME[deviceID],graphList);
     if (status != HIAI_OK)
     {
         HIAI_ENGINE_LOG(status, "Fail to start graph");
@@ -66,12 +67,11 @@ HIAI_StatusT HIAI_InitAndStartGraph()
         HIAI_ENGINE_LOG("Fail to get the graph");
         return status;
     }
-    graph_id = graph->GetGraphId();
 	int leaf_array[1] = {223};  //leaf node id
 
 	for(int i = 0;i < 1;i++){
 		hiai::EnginePortID target_port_config;
-		target_port_config.graph_id = graph_id;
+		target_port_config.graph_id = GRAPH_ID[deviceID];
 		target_port_config.engine_id = leaf_array[i];  
 		target_port_config.port_id = 0;
 		graph->SetDataRecvFunctor(target_port_config,
@@ -83,7 +83,6 @@ HIAI_StatusT HIAI_InitAndStartGraph()
 }
 int main(int argc, char* argv[])
 {
-    HIAI_StatusT ret = HIAI_OK;
 	char * dirc = strdup(argv[0]);
 	if (dirc)
 	{
@@ -92,39 +91,50 @@ int main(int argc, char* argv[])
 	    HIAI_ENGINE_LOG("chdir to %s", dname);
 	    free(dirc);
 	}
-    // 1.create graph
-    ret = HIAI_InitAndStartGraph();
-    if (HIAI_OK != ret)
-    {
-        HIAI_ENGINE_LOG("Fail to start graph");;
-        return -1;
+
+	uint32_t threads_n = 4;
+	std::thread threads[threads_n];
+	for (uint32_t n = 0; n < threads_n; n++) {
+        HIAI_StatusT ret = HIAI_OK;
+        threads[n] = std::thread([&ret, n](){
+
+            // 1.create graph
+            ret = HIAI_InitAndStartGraph(n);
+            if (HIAI_OK != ret)
+            {
+                HIAI_ENGINE_LOG("Fail to start graph");;
+                return -1;
+            }
+
+            // 2.send data
+            std::shared_ptr<hiai::Graph> graph = hiai::Graph::GetInstance(GRAPH_ID[n]);
+            if (nullptr == graph)
+            {
+                HIAI_ENGINE_LOG("Fail to get the graph-%u", GRAPH_ID[n]);
+                return -1;
+            }
+    
+            // send data to SourceEngine 0 port
+            hiai::EnginePortID engine_id;
+            engine_id.graph_id = GRAPH_ID[n];
+            engine_id.engine_id = 133;
+            engine_id.port_id = 0;
+            std::shared_ptr<std::string> src_data(new std::string);
+            graph->SendData(engine_id, "string", std::static_pointer_cast<void>(src_data));
+
+	        for (;;) {
+                if(flag <= 0) {
+                    break;
+                } else {
+                    usleep(100000);
+                }
+            }
+
+            hiai::Graph::DestroyGraph(GRAPH_ID[n]);
+        });
     }
 
-    // 2.send data
-    std::shared_ptr<hiai::Graph> graph = hiai::Graph::GetInstance(graph_id);
-    if (nullptr == graph)
-    {
-        HIAI_ENGINE_LOG("Fail to get the graph-%u", graph_id);
-        return -1;
-    }
-    
-    // send data to SourceEngine 0 port 
-    hiai::EnginePortID engine_id;
-    engine_id.graph_id = graph_id;
-    engine_id.engine_id = 756; 
-    engine_id.port_id = 0;
-    std::shared_ptr<std::string> src_data(new std::string);
-    graph->SendData(engine_id, "string", std::static_pointer_cast<void>(src_data));
-	for (;;)
-    {
-        if(flag <= 0)
-        {
-            break;
-        }else
-        {
-            usleep(100000);
-        }
-    }
-    hiai::Graph::DestroyGraph(graph_id);
+    for (uint32_t j = 0; j < threads_n; j++) threads[j].join();
+
     return 0;
 }
