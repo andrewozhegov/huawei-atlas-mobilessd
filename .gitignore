@@ -1,0 +1,5 @@
+out/
+build/host/*.so
+build/host/tmp/
+build/device/*.so
+build/device/tmp/
