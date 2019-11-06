@@ -1,5 +1,8 @@
+makeclean.log
 out/
 build/host/*.so
 build/host/tmp/
 build/device/*.so
 build/device/tmp/
+profiling.pid
+profiling_output/
