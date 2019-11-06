@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
             // send data to SourceEngine 0 port
             hiai::EnginePortID engine_id;
             engine_id.graph_id = GRAPH_ID[n];
-            engine_id.engine_id = 133;
+            engine_id.engine_id = 756;
             engine_id.port_id = 0;
             std::shared_ptr<std::string> src_data(new std::string);
             graph->SendData(engine_id, "string", std::static_pointer_cast<void>(src_data));
