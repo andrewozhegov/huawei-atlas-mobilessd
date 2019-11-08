@@ -1,4 +1,5 @@
 #!/bin/sh
+
 export LD_LIBRARY_PATH=/home/HwHiAiUser/tools/che/ddk/ddk/uihost/lib/
 TOP_DIR=${PWD}
 BUILD_DIR=${TOP_DIR}/build
@@ -9,10 +10,32 @@ then
   rm ${LOCAL_OBJ_PATH}/*.o ${LOCAL_OBJ_PATH}/main
   exit
 fi
-sed 's/graph_id:.*/graph_id: 100/g' ./graph.config > ./out/graph0.config
-sed 's/graph_id:.*/graph_id: 101/g' ./graph.config > ./out/graph1.config
-sed 's/graph_id:.*/graph_id: 102/g' ./graph.config > ./out/graph2.config
-sed 's/graph_id:.*/graph_id: 103/g' ./graph.config > ./out/graph3.config
+
+DATASET_SIZE=2226
+DEVICE_N=4
+#for ((deviceID=0; deviceID<$DEVICE_N; deviceID++)); do
+for deviceID in 0 1 2 3; do
+    from=$(( ($DATASET_SIZE / $DEVICE_N) * $deviceID + 1 ))
+    to=$(( ($DATASET_SIZE / $DEVICE_N) * ($deviceID + 1) ))
+    tmpfile="$(mktemp)"
+    awk -v deviceID=$deviceID -v from=$from -v to=$to '{
+        if (!match($0,"selectImages")) {
+            if (match($0,"graph_id")) $2="10"deviceID
+            print $0;
+            next;
+        } else {
+            print $0; getline;
+            list=from;
+            for (i=++from; i<=to; i++) {
+                list=list","i
+            };
+            $2="\""list"\"";
+            print $0
+        }
+    }' graph.config > "$tmpfile"
+    mv "$tmpfile" './out/graph'$deviceID'.config'
+done
+
 cd ${BUILD_DIR}
 if [ -d "host" ];then
   if [ -f "host/Makefile" ];then
@@ -25,7 +48,9 @@ if [ -d "host" ];then
     fi
   fi
 fi
+
 cd ${BUILD_DIR}
+
 if [ -d "device" ];then
   if [ -f "device/Makefile" ];then
     cd device && make install
