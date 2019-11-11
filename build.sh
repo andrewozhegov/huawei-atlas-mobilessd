@@ -21,6 +21,7 @@ for deviceID in 0 1 2 3; do
     awk -v deviceID=$deviceID -v from=$from -v to=$to '{
         if (!match($0,"selectImages")) {
             if (match($0,"graph_id")) $2="10"deviceID
+            if (match($0,"device_id")) $2="\"deviceID\""
             print $0;
             next;
         } else {
