@@ -67,7 +67,7 @@ HIAI_StatusT HIAI_InitAndStartGraph()
         return status;
     }
     graph_id = graph->GetGraphId();
-	int leaf_array[1] = {223};  //leaf node id
+	int leaf_array[1] = {383};  //leaf node id
 
 	for(int i = 0;i < 1;i++){
 		hiai::EnginePortID target_port_config;
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     // send data to SourceEngine 0 port 
     hiai::EnginePortID engine_id;
     engine_id.graph_id = graph_id;
-    engine_id.engine_id = 756; 
+    engine_id.engine_id = 621; 
     engine_id.port_id = 0;
     std::shared_ptr<std::string> src_data(new std::string);
     graph->SendData(engine_id, "string", std::static_pointer_cast<void>(src_data));
