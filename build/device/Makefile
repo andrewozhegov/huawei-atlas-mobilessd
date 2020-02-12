@@ -2,7 +2,7 @@ SHELL := /bin/bash
 all : libDevice.so
 #DEVICE COMPILER		
 DDK_HOME = /home/HwHiAiUser/tools/che/ddk/ddk
-CC := $(DDK_HOME)/toolchains/aarch64-linux-gcc7.3.1/bin/aarch64-linux-gnu-g++
+CC := $(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/bin/aarch64-linux-gnu-g++
 #Attention: no space at the end of the line, or it will be added to dir name which will will cause error
 LOCAL_DIR  :=  ../../ImagePreProcess_1 ../../MindInferenceEngine_1 ../../common
 
@@ -19,7 +19,7 @@ INC_DIR = \
     -I$(DDK_HOME)/include/third_party/cereal/include \
     -I$(DDK_HOME)/include/libc_sec/include \
     -I/usr/include/python2.7 \
-    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc7.3.1/sysroot/ \
+    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/sysroot/ \
     -I../../ImagePreProcess_1 \
     -I../../MindInferenceEngine_1 \
     -I../../common/include 
@@ -34,7 +34,7 @@ LNK_FLAGS := \
     -lDvpp_vpc \
     -lidedaemon \
     -shared \
-    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc7.3.1/sysroot/
+    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/sysroot/
 
 #Recursivly traverse 3rd level subdirectory here
 DIRS := $(shell find $(SRC_DIR) -maxdepth 3 -type d)

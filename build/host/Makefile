@@ -2,7 +2,8 @@ SHELL := /bin/bash
 all : libHost.so
 #HOST COMPILER		
 DDK_HOME = /home/HwHiAiUser/tools/che/ddk/ddk
-CC := g++
+DDK_AARCH64 = /home/HwHiAiUser/tools/ddk.aarch64
+CC := $(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/bin/aarch64-linux-gnu-g++
 #Attention: no space at the end of the line, or it will be added to dir name which will will cause error
 LOCAL_DIR  :=  ../../people_ssd ../../SSDPostProcess_1 ../../common
 
@@ -19,6 +20,7 @@ INC_DIR = \
     -I$(DDK_HOME)/include/third_party/cereal/include \
     -I$(DDK_HOME)/include/libc_sec/include \
     -I/usr/include/python2.7 \
+    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/sysroot/ \
     -I../../people_ssd \
     -I../../SSDPostProcess_1 \
     -I../../common/include 
@@ -26,10 +28,11 @@ INC_DIR = \
 #Add compile arguments here 
 CC_FLAGS := $(INC_DIR) -std=c++11 -fPIC
 LNK_FLAGS := \
-    -L$(DDK_HOME)/host/lib/ \
+    -L$(DDK_AARCH64)/host/lib/ \
     -lmatrix \
     -lhiai_common \
     -shared
+    --sysroot=$(DDK_HOME)/toolchains/aarch64-linux-gcc6.3/sysroot/
 
 #Recursivly traverse 3rd level subdirectory here
 DIRS := $(shell find $(SRC_DIR) -maxdepth 3 -type d)
